@@ -355,4 +355,84 @@ WHERE RANK() OVER(ORDER BY SALARY DESC) <= 5; -- 오류 (WHERE절에 WINDOW 함�
 SELECT *
 FROM(SELECT EMP_NAME, SALARY, RANK() OVER(ORDER BY SALARY DESC) "순위"
        FROM EMPLOYEE)
-WHERE 순위 <= 5;       
+WHERE 순위 <= 5; 
+
+--------------------------------------------------------------------------------
+
+/*
+    6. 상(호연)관 서브쿼리
+       일반적인 서브쿼리 방식은 서브쿼리가 만들어낸 고정된 결과값을 메인쿼리가 가져다가 사용하는 구조이나
+       상관 서브쿼리는 반대로 메인쿼리의 테이블값을 가져다가 서브쿼리에서 이용해서 결과를 만듦
+*/
+-- 1) 본인의 직급별 평균급보다 더 많이 받는 직원의 이름, 직급코드, 급여 조회
+SELECT E.EMP_NAME, E.JOB_CODE, E.SALARY
+FROM EMPLOYEE E
+WHERE SALARY > 해당사원직급(E.JOB_CODE)의평균급여;
+
+SELECT E.EMP_NAME, E.JOB_CODE, E.SALARY
+FROM EMPLOYEE E
+WHERE SALARY > (SELECT AVG(SALARY)
+                  FROM EMPLOYEE
+                 WHERE JOB_CODE = E.JOB_CODE);
+-- 서브쿼리안의 E.JOB_CODE 자리에는 메인쿼리의 값이 매번 대체
+
+-- 2) 보너스가 본인 부서의 평균보너스보다 많은 사원들의 이름, 부서코드, 급여, 보너스 조회
+SELECT EMP_NAME, E.DEPT_CODE, SALARY, BONUS
+FROM EMPLOYEE E
+WHERE BONUS > (SELECT AVG(BONUS)
+                 FROM EMPLOYEE
+                WHERE DEPT_CODE = E.DEPT_CODE); 
+
+-- 상관서브쿼리이면서 서브쿼리의 결과값이 매번 1개 => "스칼라"
+
+-- 3) 전 사원의 사번, 이름, 사수사번, 사수명 조회
+SELECT E.EMP_ID, E.EMP_NAME, E.MANAGER_ID, M.EMP_NAME
+FROM EMPLOYEE E
+LEFT JOIN EMPLOYEE M ON(E.MANAGER_ID = M.EMP_ID);
+
+-- 서브쿼리 이용
+SELECT EMP_ID, EMP_NAME,
+       EMPLOYEE로부터EMP_ID가E.MANAGER_ID와일치하는사원명
+FROM EMPLOYEE E;
+
+SELECT EMP_ID, EMP_NAME,
+       NVL((
+        SELECT EMP_NAME
+          FROM EMPLOYEE
+         WHERE EMP_ID = E.MANAGER_ID
+       ), '없음') "사수명"
+FROM EMPLOYEE E;
+
+-- 스칼라서브쿼리의 특징 : 서브쿼리의 수행횟수를 최소화하기 위해 입력값과 출력값을 내부 캐시에 저장해둠
+--                     입력값을 캐시에서 찾아보고 거기에 있으면 출력값을 리턴하고 없으면 서브쿼리가 수행되도록
+
+-- 4) 전 사원의 사번, 이름, 직급코드, 직급명 조회
+SELECT EMP_ID, EMP_NAME, JOB_CODE, JOB_NAME
+FROM EMPLOYEE
+JOIN JOB USING(JOB_CODE);
+
+SELECT EMP_ID, EMP_NAME, JOB_CODE,
+       (
+        SELECT JOB_NAME
+          FROM JOB
+         WHERE JOB_CODE = E.JOB_CODE
+         ) "직급명"
+FROM EMPLOYEE E;
+
+-- 부서명 알아내기
+SELECT EMP_ID, EMP_NAME, 
+       (
+        SELECT DEPT_TITLE
+          FROM DEPARTMENT
+         WHERE DEPT_ID = DEPT_CODE
+       ) "부서명"
+FROM EMPLOYEE;       
+
+-- 5) 전 사원의 사번, 이름, 부서코드, 해당부서의부서원수
+SELECT EMP_ID, EMP_NAME, DEPT_CODE,
+       (
+           SELECT COUNT(*)
+             FROM EMPLOYEE
+            WHERE NVL(DEPT_CODE, 'X') = NVL(E.DEPT_CODE, 'X') 
+       ) "부서원수"
+FROM EMPLOYEE E;
