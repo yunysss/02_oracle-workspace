@@ -539,10 +539,8 @@ END
   ```
 - 자료형
   - 문자 (CHAR(바이트크기) | VARCHAR2(바이트크기)) => 반드시 크기지정
-    - CHAR : 최대 2000바이트까지 지정 가능 / 고정 길이 (지정한 크기보다 더 적은 값이 들어오면 빈 공간을 공백으로라도 채움)
-고정된 글자수의 데이터만이 담길 경우 사용
-    - VARCHAR2 : 최대 4000바이트까지 지정 가능 / 가변 길이 (담긴 값에 따라서 공간의 크기 맞춰짐)
-몇 글자의 데이터가 들어올지 모를 경우 사용
+    - CHAR : 최대 2000바이트까지 지정 가능 / 고정 길이 (지정한 크기보다 더 적은 값이 들어오면 빈 공간을 공백으로라도 채움) / 고정된 글자수의 데이터만이 담길 경우 사용
+    - VARCHAR2 : 최대 4000바이트까지 지정 가능 / 가변 길이 (담긴 값에 따라서 공간의 크기 맞춰짐) / 몇 글자의 데이터가 들어올지 모를 경우 사용
   - 숫자 (NUMBER)
   - 날짜 (DATE)
 
@@ -557,7 +555,7 @@ END
 COMMENT ON COLUMN 테이블명.컬럼명 IS '주석내용';
 ```
 
-#### 6_2_3. 데이터 딕셔너리
+#### 6_2_3. [참고] 데이터 딕셔너리
 - 다양한 객체들의 정보를 저장하고 있는 시스템 테이블들
 - USER_TABLES : 이 사용자가 가지고 있는 테이블들의 전반적인 구조를 확인할 수 있는 시스템 테이블
 - USER_TAB_COLUMNS : 이 사용자가 가지고 있는 테이블들의 모든 컬럼의 구조를 확인할 수 있는 시스템 테이블
@@ -565,6 +563,7 @@ COMMENT ON COLUMN 테이블명.컬럼명 IS '주석내용';
 - 원하는 데이터값 (유효한 형식의 값)만 유지하기 위해서 특정 컬럼에 부여하는 제약
 - 데이터 무결성 보장 목적
 - 제약조건 부여시 별도로 제약조건명을 지정해주지 않으면 시스템에서 임의로 제약조건명 부여
+- 종류 : NOT NULL, UNIQUE, CHECK(조건), PRIMARY KEY, FOREIGN KEY
 - 컬럼레벨방식 / 테이블레벨방식
   - 컬럼레벨방식
     ```
@@ -618,17 +617,17 @@ COMMENT ON COLUMN 테이블명.컬럼명 IS '주석내용';
     INSERT INTO TB_LIKE VALUES(1, 'A', SYSDATE); -- 불가
     ```
 #### 6_3_5. FOREIGN KEY (외래키) 제약조건
-- 다른 테이블에 존재하는 값만 들어와야되는 특정 컬럼에 부여하는 제약조건 ⇒ 다른 테이블을 참조
-- 참조할컬럼명 생략시 참조할테이블에 PRIMARY KEY로 지정된 컬럼으로 자동 매칭
+- 다른 테이블에 존재하는 값만 들어와야되는 특정 컬럼에 부여하는 제약조건 => 다른 테이블을 참조
 - 외래키 제약조건이 부여된 컬럼에 기본적으로 NULL 허용됨
-- MEM_GRADE(부모테이블) -|-----<- MEM(자식테이블)
+- 참조할컬럼명 생략시 참조할테이블에 PRIMARY KEY로 지정된 컬럼으로 자동 매칭
+- 참조할테이블(부모테이블) -|-----<- 현재테이블(자식테이블)
 - 컬럼레벨방식
   ```
-  컬럼명 자료형 [ CONSTRAINT 제약조건명 ] REFERENCES 참조할테이블명[ (참조할컬럼명) ]
+  컬럼명 자료형 [ CONSTRAINT 제약조건명 ] REFERENCES 참조할테이블명[ (참조할컬럼명) ] [ 삭제옵션 ]
   ```
 - 테이블레벨방식
   ```
-  [ CONSTRAINT 제약조건명 ] FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명[ (참조할컬럼명) ]
+  [ CONSTRAINT 제약조건명 ] FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명[ (참조할컬럼명) ] [ 삭제옵션 ]
   ```
 - 삭제옵션 
   - 자식테이블 생성 시 외래키 제약조건 부여할 때 지정
@@ -658,3 +657,165 @@ INSERT INTO MEMBER(MEM_NO, MEM_NAME) VALUES(4, '강개순');
 
 ![Untitled](https://user-images.githubusercontent.com/115604544/203284499-2ece21cf-2c61-4ae7-ab13-e1c7236746cf.png)
 
+### 6_5. SUBQUERY를 이용한 테이블 생성
+```
+CREATE TABLE 테이블명
+AS 서브쿼리;
+```
+- 테이블 복사 개념
+- 컬럼명, 데이터 타입, 데이터 값, 제약조건의 경우 NOT NULL만 복사됨 (주석, NOT NULL외 제약조건 복사 X)
+- 구조만 복사하고자 할 때
+  ```SQL
+  CREATE TABLE EMPLOYEE_COPY2
+  AS SELECT EMP_ID, EMP_NAME, SALARY, BONUS
+       FROM EMPLOYEE
+      WHERE 1 = 0;
+  ```
+  => WHERE절에 무조건 거짓인 조건을 제시하여 데이터값은 복제되지 않게 함
+- 서브쿼리의 SELECT절에 산술식 또는 함수식 기술된 경우 반드시 별칭 지정
+  ```SQL
+  CREATE TABLE EMPLOYEE_COPY3
+  AS SELECT EMP_ID, EMP_NAME, SALARY, SALARY * 12 "연봉"
+       FROM EMPLOYEE;
+  ```
+### 6_6. ALTER 
+- 객체를 변경하는 구문
+```
+ALTER TABLE 테이블명 변경할내용;
+```
+- 변경할 내용
+  - 컬럼 추가 / 수정 / 삭제
+  - 제약조건 추가 / 삭제
+  - 컬럼명 / 제약조건명 / 테이블명 
+#### 6_6_1. 컬럼
+- 컬럼 추가 (ADD)
+  ```
+  ADD 컬럼명 자료형 [ DEFAULT 기본값 ]
+  ```
+- 컬럼 수정 (MODIFY)
+  - 데이터타입 수정
+    ```
+    MODIFY 컬럼명 바꾸고자하는데이터타입
+    ```
+    - 데이터타입을 완전히 다른 타입으로 바꾸고자 할 경우(EX. CHAR → NUM) 이미 담겨 있는 데이터값이 없을 경우에만 가능
+    - CHARACTER 타입의 경우 이미 담겨 있는 값의 바이트크기보다 작게 수정 불가
+  - DEFAULT값 수정
+    ```
+    MODIFY 컬럼명 DEFAULT 바꾸고자하는기본값
+    ```
+  - 다중 변경 가능 (연이어서 작성)
+- 컬럼 삭제 (DROP COLUMN)
+  ```
+  DROP COLUMN 삭제하고자하는컬럼명
+  ```
+  - 최소 한개의 컬럼은 존재해야함
+#### 6_6_2. 제약조건
+- 제약조건 추가
+  - PRIMARY KEY : ADD PRIMARY KEY(컬럼명)
+  - FOREIGN KEY : ADD FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명[ (컬럼명) ] [ 삭제옵션 ]
+  - UNIQUE : ADD UNIQUE(컬럼명)
+  - CHECK : ADD CHECK(컬럼에대한조건)
+  - NOT NULL : MODIFY 컬럼명 NOT NULL | NULL
+- 제약조건 삭제
+  - DROP CONSTRAINT 제약조건명
+  - NOT NULL의 경우 : MODIFY 컬럼명 NULL
+- 다중 변경 가능
+#### 6_6_3. - 컬럼명 / 제약조건명 / 테이블명 (RENAME)
+- 컬럼명 변경 : RENAME COLUMN 기존컬럼명 TO 바꿀컬럼명
+- 제약조건명 변경 : RENAME CONSTRAINT 기존제약조건명 TO 바꿀제약조건명
+- 테이블명 변경 : RENAME [ 기존테이블명 ] TO 바꿀테이블명
+### 6_7. DROP
+- 테이블 삭제
+  ```
+  DROP TABLE 테이블명;
+  ```
+- 부모테이블 삭제
+  - 방법1. 자식 테이블 먼저 삭제한 후 부모테이블 삭제
+  - 방법2. 부모테이블 전체 및 자식테이블의 제약조건 같이 삭제
+    ```
+    DROP TABLE 테이블명 CASCADE CONTRAINT;
+    ```
+## 7. DML (INSERT, UPDATE, DELETE)
+### 7_1. DML(Data Manipulation Language)
+- 데이터 조작 언어
+- 테이블에 데이터를 삽입(INSERT)하거나, 수정(UPDATE)하거나, 삭제(DELETE)하는 구문
+#### 7_2. INSERT
+- 테이블에 새로운 행을 추가시키는 구문
+- 특정 컬럼을 지정하지 않고 삽입하고자 할 때
+  ```
+  INSERT INTO 테이블명 VALUES(값, 값, 값, ...);
+  ```
+  - 컬럼 순번을 지켜서 VALUES에 값 나열 (컬럼 갯수만큼 값 제시)
+  - 부족하게 값을 제시했을 경우 => not enough values 오류
+  - 값을 더 많이 제시했을 경우 => too many values 오류
+- 특정 컬럼을 선택해서 값을 제시하고자 할 때
+  ```
+  INSERT INTO 테이블명(컬럼명, 컬럼명, 컬럼명) VALUES(값, 값, 값);
+  ```
+  - 한 행으로 추가 => 선택 안 된 컬럼에는 기본적으로 NULL이 들어감
+  - NOT NULL 제약조건이 걸려있는 컬럼은 반드시 선택해서 직접 값 제시   
+    단, 기본값(DEFAULT)이 지정되어 있으면 NULL이 아닌 기본값이 들어감
+- 서브쿼리를 수행 결과값을 통채로 INSERT하고자 할 때
+  ```
+  INSERT INTO 테이블명
+  (서브쿼리);
+  ```
+- INSERT시 컬럼값으로 서브쿼리 사용 가능
+  ```SQL
+  NSERT INTO EMPLOYEE(EMP_ID, EMP_NAME, EMP_NO, JOB_CODE, SALARY)
+  VALUES(500, '김말순', '900912-2345676', 'J7', (SELECT MAX(SALARY) FROM EMPLOYEE));
+  ```
+#### 7_3. INSERT ALL
+- 두 개 이상의 테이블에 각각 INSERT 할 때 사용되는 서브쿼리가 동일할 경우
+```
+INSERT ALL
+INTO 테이블명1 VALUES(컬럼명, 컬럼명, 컬럼명, ...)
+INTO 테이블명2 VALUES(컬럼명, 컬럼명, 컬럼명, ...)
+  서브쿼리;
+```
+- 조건을 사용해 각 테이블에 INSERT
+  ```
+  INSERT ALL
+    WHEN 조건1 THEN
+      INTO 테이블명1 VALUES(컬럼명, 컬럼명, ...)
+    WHEN 조건2 THEN
+      INTO 테이블명2 VALUES(컬럼명, 컬럼명, ...)
+  서브쿼리;
+  ```
+#### 7_4. UPDATE
+- 테이블에 기록되어 있는 기존의 데이터를 수정하는 구문
+```
+UPDATE 테이블명
+SET 컬럼명 = 바꿀값,
+    컬럼명 = 바꿀값,
+    ...
+[ WHERE 조건 ];
+```
+- 여러개의 컬럼값 동시변경 가능 ( , 로 나열)
+- WHERE절 생략하면 전체 모든 행의 데이터가 변경됨
+- 서브쿼리 사용 가능
+- UPDATE 시에도 해당 컬럼에 대한 제약조건에 위배되어서는 안됨
+#### 7_5. DELETE
+- 테이블에 기록된 데이터를 삭제하는 구문 
+- 한 행 단위로 삭제
+```
+DELETE FROM 테이블명
+[ WHERE 조건 ]
+```
+=> WHERE절 생략하면 전체 행 다 삭제됨    
+- 외래키 제약조건에 의해 해당 데이터를 사용하는 자식데이터가 있을 경우 삭제 불가 => 잠시 제약조건을 비활성화 시킨 후 삭제
+  - 비활성화
+    ```
+    ALTER TABLE 자식테이블명 DISABLE CONSTRAINT 제약조건명 CASCADE;
+    ```
+  - 활성화
+    ```
+    ALTER TABLE 자식테이블명 ENABLE CONSTRAINT 제약조건명;
+    ```
+#### 7_6. TRUNCATE
+```
+TRUNCATE TABLE 테이블명;
+```
+- 테이블의 전체행을 삭제할 때 사용되는 구문
+- DELETE 보다 수행속도가 더 빠름
+- 별도의 조건 제시 불가, ROLLBACK 불가
