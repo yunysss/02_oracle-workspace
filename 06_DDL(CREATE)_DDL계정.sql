@@ -489,14 +489,68 @@ INSERT INTO MEMBER VALUES(3, '김말똥', DEFAULT, DEFAULT, DEFAULT);
 --       INSERT INTO 테이블명(컬럼명, 컬럼명) VALUES(값, 값); --> 선택한 컬럼의 수에 맞춰 값 제시
 INSERT INTO MEMBER(MEM_NO, MEM_NAME) VALUES(4, '강개순');
 
+--------------------------------------------------------------------------------
 
+/*
+    ------------------------- BR 계정 -------------------------
+    
+    < SUBQUERY를 이용한 테이블 생성 >
+    테이블 복사 개념
+    
+    [표현법]
+    CREATE TABLE 테이블명
+    AS 서브쿼리;
+*/
+-- EMPLOYEE 테이블을 그대로 복제한 새로운 테이블 생성
+CREATE TABLE EMPLOYEE_COPY
+AS SELECT * 
+     FROM EMPLOYEE;
 
+SELECT * FROM EMPLOYEE_COPY;
+--> 컬럼명, 데이터 타입, 데이터 값, 제약조건의 경우 NOT NULL만 복사됨
 
+CREATE TABLE EMPLOYEE_COPY2
+AS SELECT EMP_ID, EMP_NAME, SALARY, BONUS
+     FROM EMPLOYEE
+    WHERE 1 = 0; --> 구조만을 복사하고자 할 때 쓰이는 구문 (데이터값은 필요 없을 때 무조건 거짓인 조건을 제시하여 데이터값은 복제되지 않게함)
 
+SELECT * FROM EMPLOYEE_COPY2;
 
+CREATE TABLE EMPLOYEE_COPY3
+AS SELECT EMP_ID, EMP_NAME, SALARY, SALARY * 12 "연봉"
+     FROM EMPLOYEE;
+--> 서브쿼리의 SELECT절에 산술식 또는 함수식 기술된 경우 반드시 별칭 지정
 
+SELECT * FROM EMPLOYEE_COPY3;
 
+SELECT EMP_NAME, 연봉
+FROM EMPLOYEE_COPY3;
 
+--------------------------------------------------------------------------------
 
+/*
+    * 테이블을 다 생성한 후에 뒤늦게 제약조건 추가
+    
+    ALTER TABLE 테이블명 변경할내용;
+    
+    >> 변경할내용
+    - PRIMARY KEY : ADD PRIMARY KEY(컬럼명);
+    - FOREIGN KEY : ADD FOREIGN KEY(컬럼명) REFERENCES 참조할테이블[ (참조할컬럼) ] [ 삭제옵션 ] ;
+    - UNIQUE : ADD UNIQUE(컬럼명);
+    - CHECK : ADD CHECK(컬럼에 대한 조건식);
+    - NOT NULL : MODIFY 컬럼명 NOT NULL;
+*/
+-- EMPLOYEE_COPY 테이블에 PRIMARY KEY 제약조건 추가 (EMP_ID)
+ALTER TABLE EMPLOYEE_COPY ADD PRIMARY KEY(EMP_ID);
 
+SELECT * FROM EMPLOYEE;
+SELECT * FROM DEPARTMENT;
 
+-- EMPLOYEE 테이블 DEPT_CODE에 외래키 제약조건 추가 (참조할테이블(부모) : DEPARTMENT(DEPT_ID))
+ALTER TABLE EMPLOYEE ADD FOREIGN KEY(DEPT_CODE) REFERENCES DEPARTMENT;
+
+-- EMPLOYEE 테이블 JOB_CODE에 외래키 제약조건 추가 (JOB 테이블 참조)
+ALTER TABLE EMPLOYEE ADD FOREIGN KEY(JOB_CODE) REFERENCES JOB;
+
+-- DEPARTMENT 테이블 LOCATION_ID에 외래키 제약조건 추가 (LOCATION 테이블 참조)
+ALTER TABLE DEPARTMENT ADD FOREIGN KEY(LOCATION_ID) REFERENCES LOCATION;

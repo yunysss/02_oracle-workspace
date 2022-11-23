@@ -86,7 +86,7 @@ INSERT INTO TB_MEMBER VALUES(1, 'user01', 'pass01', '회원1', 'M', '서울시 �
 INSERT INTO TB_MEMBER VALUES(2, 'user02', 'pass02', '회원2', 'M', '서울시 동작구', '010-5555-6666', DEFAULT, DEFAULT);
 INSERT INTO TB_MEMBER VALUES(3, 'user03', 'pass03', '회원3', 'F', '서울시 금천구', '010-6666-7777', 'Y', '17/12/25');
 INSERT INTO TB_MEMBER VALUES(4, 'user04', 'pass04', '회원4', 'F', '서울시 강남구', '010-7777-8888', 'N', '19/08/05');
-INSERT INTO TB_MEMBER VALUES(5, 'user05', 'pass05', '회원1', 'M', '서울시 관악구', '010-8888-9999', 'Y', '22/10/12');
+INSERT INTO TB_MEMBER VALUES(5, 'user05', 'pass05', '회원5', 'M', '서울시 관악구', '010-8888-9999', 'Y', '22/10/12');
 
 -- 4. 어떤 회원이 어떤 도서를 대여했는지에 대한  대여목록 테이블(TB_RENT)
 -- 컬럼 : RENT_NO(대여번호) -- 기본키(RENT_PK)
@@ -111,3 +111,26 @@ COMMENT ON COLUMN TB_RENT.RENT_DATE IS '대여일';
 INSERT INTO TB_RENT VALUES(10, 3, 1010, '22/04/05');
 INSERT INTO TB_RENT(RENT_NO, RENT_MEM_NO, RENT_BOOK_NO) VALUES(11, 5, 5544);
 INSERT INTO TB_RENT VALUES(12, 1, 1234, '22/01/01');
+
+-- 만일 전체도서의 도서번호, 도서명, 저자명, 가격, 출판사명, 출판사전화번호를 조회하고자 할때 
+SELECT BK_NO, BK_TITLE, BK_AUTHOR, BK_PRICE, BK_PUB_NO, PHONE
+FROM TB_BOOK
+JOIN TB_PUBLISHER ON(BK_PUB_NO = PUB_NO);
+
+-- 만일 어떤회원이 어떤도서를 어느날짜에 대여했는지 전체목록을 조회하고자 할때
+-- 이때 회원명, 도서명, 대여일 조회하고자 할때
+SELECT MEMBER_NAME, BK_TITLE, RENT_DATE
+FROM TB_MEMBER
+JOIN TB_RENT ON(MEMBER_NO = RENT_MEM_NO)
+JOIN TB_BOOK ON(RENT_BOOK_NO = BK_NO);
+-- 근데 그 중에서 2번 도서를 대여한 회원의 이름, 아이디, 대여일, 반납예정일(대여일 + 7일)을 조회하고자 할 때
+SELECT MEMBER_NAME, MEMBER_ID, RENT_DATE, RENT_DATE + 7 "반납예정일"
+FROM TB_MEMBER
+JOIN TB_RENT ON(MEMBER_NO = RENT_MEM_NO)
+WHERE RENT_BOOK_NO = 5544;
+-- 회원번호가 1번인 회원이 대여한 도서들의 도서명, 출판사명, 대여일, 반납예정일을 조회하시오
+SELECT BK_NO, BK_TITLE, PUB_NAME, RENT_DATE, RENT_DATE + 7 "반납예정일"
+FROM TB_BOOK
+JOIN TB_PUBLISHER ON(BK_PUB_NO = PUB_NO)
+JOIN TB_RENT ON(BK_NO = RENT_BOOK_NO)
+WHERE RENT_MEM_NO = 1;
