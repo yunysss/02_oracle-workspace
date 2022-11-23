@@ -678,4 +678,97 @@ AS 서브쿼리;
   AS SELECT EMP_ID, EMP_NAME, SALARY, SALARY * 12 "연봉"
        FROM EMPLOYEE;
   ```
-## 7.
+### 6_6. ALTER 
+- 객체를 변경하는 구문
+```
+ALTER TABLE 테이블명 변경할내용;
+```
+- 변경할 내용
+  - 컬럼 추가 / 수정 / 삭제
+  - 제약조건 추가 / 삭제
+  - 컬럼명 / 제약조건명 / 테이블명 
+#### 6_6_1. 컬럼
+- 컬럼 추가 (ADD)
+  ```
+  ADD 컬럼명 자료형 [ DEFAULT 기본값 ]
+  ```
+- 컬럼 수정 (MODIFY)
+  - 데이터타입 수정
+    ```
+    MODIFY 컬럼명 바꾸고자하는데이터타입
+    ```
+    - 데이터타입을 완전히 다른 타입으로 바꾸고자 할 경우(EX. CHAR → NUM) 이미 담겨 있는 데이터값이 없을 경우에만 가능
+    - CHARACTER 타입의 경우 이미 담겨 있는 값의 바이트크기보다 작게 수정 불가
+  - DEFAULT값 수정
+    ```
+    MODIFY 컬럼명 DEFAULT 바꾸고자하는기본값
+    ```
+  - 다중 변경 가능 (연이어서 작성)
+- 컬럼 삭제 (DROP COLUMN)
+  ```
+  DROP COLUMN 삭제하고자하는컬럼명
+  ```
+  - 최소 한개의 컬럼은 존재해야함
+#### 6_6_2. 제약조건
+- 제약조건 추가
+  - PRIMARY KEY : ADD PRIMARY KEY(컬럼명)
+  - FOREIGN KEY : ADD FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명[ (컬럼명) ] [ 삭제옵션 ]
+  - UNIQUE : ADD UNIQUE(컬럼명)
+  - CHECK : ADD CHECK(컬럼에대한조건)
+  - NOT NULL : MODIFY 컬럼명 NOT NULL | NULL
+- 제약조건 삭제
+  - DROP CONSTRAINT 제약조건명
+  - NOT NULL의 경우 : MODIFY 컬럼명 NULL
+- 다중 변경 가능
+#### 6_6_3. - 컬럼명 / 제약조건명 / 테이블명 (RENAME)
+- 컬럼명 변경 : RENAME COLUMN 기존컬럼명 TO 바꿀컬럼명
+- 제약조건명 변경 : RENAME CONSTRAINT 기존제약조건명 TO 바꿀제약조건명
+- 테이블명 변경 : RENAME [ 기존테이블명 ] TO 바꿀테이블명
+### 6_7. DROP
+- 테이블 삭제
+  ```
+  DROP TABLE 테이블명;
+  ```
+- 부모테이블 삭제
+  - 방법1. 자식 테이블 먼저 삭제한 후 부모테이블 삭제
+  - 방법2. 부모테이블 전체 및 자식테이블의 제약조건 같이 삭제
+    ```
+    DROP TABLE 테이블명 CASCADE CONTRAINT;
+    ```
+## 7. DML (INSERT, UPDATE, DELETE)
+### 7_1. DML(Data Manipulation Language)
+- 데이터 조작 언어
+- 테이블에 데이터를 삽입(INSERT)하거나, 수정(UPDATE)하거나, 삭제(DELETE)하는 구문
+#### 7_2. INSERT
+- 테이블에 새로운 행을 추가시키는 구문
+- 특정 컬럼을 지정하지 않고 삽입하고자 할 때
+  ```
+  INSERT INTO 테이블명 VALUES(값, 값, 값, ...);
+  ```
+  - 컬럼 순번을 지켜서 VALUES에 값 나열 (컬럼 갯수만큼 값 제시)
+  - 부족하게 값을 제시했을 경우 => not enough values 오류
+  - 값을 더 많이 제시했을 경우 => too many values 오류
+- 특정 컬럼을 선택해서 값을 제시하고자 할 때
+  ```
+  INSERT INTO 테이블명(컬럼명, 컬럼명, 컬럼명) VALUES(값, 값, 값);
+  ```
+  - 한 행으로 추가 => 선택 안 된 컬럼에는 기본적으로 NULL이 들어감
+  - NOT NULL 제약조건이 걸려있는 컬럼은 반드시 선택해서 직접 값 제시   
+    단, 기본값(DEFAULT)이 지정되어 있으면 NULL이 아닌 기본값이 들어감
+- 서브쿼리를 수행 결과값을 통채로 INSERT하고자 할 때
+  ```
+  INSERT INTO 테이블명
+  (서브쿼리);
+  ```
+- INSERT시 컬럼값으로 서브쿼리 사용 가능
+  ```SQL
+  NSERT INTO EMPLOYEE(EMP_ID, EMP_NAME, EMP_NO, JOB_CODE, SALARY)
+  VALUES(500, '김말순', '900912-2345676', 'J7', (SELECT MAX(SALARY) FROM EMPLOYEE));
+  ```
+#### 7_3. INSERT ALL
+- 두 개 이상의 테이블에 각각 INSERT 할 때 사용되는 서브쿼리가 동일할 경우
+
+INSERT ALL
+INTO 테이블명1 VALUES(컬럼명, 컬럼명, 컬럼명, ...)
+INTO 테이블명2 VALUES(컬럼명, 컬럼명, 컬럼명, ...)
+서브쿼리;
