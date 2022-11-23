@@ -539,10 +539,8 @@ END
   ```
 - 자료형
   - 문자 (CHAR(바이트크기) | VARCHAR2(바이트크기)) => 반드시 크기지정
-    - CHAR : 최대 2000바이트까지 지정 가능 / 고정 길이 (지정한 크기보다 더 적은 값이 들어오면 빈 공간을 공백으로라도 채움)
-고정된 글자수의 데이터만이 담길 경우 사용
-    - VARCHAR2 : 최대 4000바이트까지 지정 가능 / 가변 길이 (담긴 값에 따라서 공간의 크기 맞춰짐)
-몇 글자의 데이터가 들어올지 모를 경우 사용
+    - CHAR : 최대 2000바이트까지 지정 가능 / 고정 길이 (지정한 크기보다 더 적은 값이 들어오면 빈 공간을 공백으로라도 채움) / 고정된 글자수의 데이터만이 담길 경우 사용
+    - VARCHAR2 : 최대 4000바이트까지 지정 가능 / 가변 길이 (담긴 값에 따라서 공간의 크기 맞춰짐) / 몇 글자의 데이터가 들어올지 모를 경우 사용
   - 숫자 (NUMBER)
   - 날짜 (DATE)
 
@@ -557,7 +555,7 @@ END
 COMMENT ON COLUMN 테이블명.컬럼명 IS '주석내용';
 ```
 
-#### 6_2_3. 데이터 딕셔너리
+#### 6_2_3. [참고] 데이터 딕셔너리
 - 다양한 객체들의 정보를 저장하고 있는 시스템 테이블들
 - USER_TABLES : 이 사용자가 가지고 있는 테이블들의 전반적인 구조를 확인할 수 있는 시스템 테이블
 - USER_TAB_COLUMNS : 이 사용자가 가지고 있는 테이블들의 모든 컬럼의 구조를 확인할 수 있는 시스템 테이블
@@ -565,6 +563,7 @@ COMMENT ON COLUMN 테이블명.컬럼명 IS '주석내용';
 - 원하는 데이터값 (유효한 형식의 값)만 유지하기 위해서 특정 컬럼에 부여하는 제약
 - 데이터 무결성 보장 목적
 - 제약조건 부여시 별도로 제약조건명을 지정해주지 않으면 시스템에서 임의로 제약조건명 부여
+- 종류 : NOT NULL, UNIQUE, CHECK(조건), PRIMARY KEY, FOREIGN KEY
 - 컬럼레벨방식 / 테이블레벨방식
   - 컬럼레벨방식
     ```
@@ -618,17 +617,17 @@ COMMENT ON COLUMN 테이블명.컬럼명 IS '주석내용';
     INSERT INTO TB_LIKE VALUES(1, 'A', SYSDATE); -- 불가
     ```
 #### 6_3_5. FOREIGN KEY (외래키) 제약조건
-- 다른 테이블에 존재하는 값만 들어와야되는 특정 컬럼에 부여하는 제약조건 ⇒ 다른 테이블을 참조
-- 참조할컬럼명 생략시 참조할테이블에 PRIMARY KEY로 지정된 컬럼으로 자동 매칭
+- 다른 테이블에 존재하는 값만 들어와야되는 특정 컬럼에 부여하는 제약조건 => 다른 테이블을 참조
 - 외래키 제약조건이 부여된 컬럼에 기본적으로 NULL 허용됨
-- MEM_GRADE(부모테이블) -|-----<- MEM(자식테이블)
+- 참조할컬럼명 생략시 참조할테이블에 PRIMARY KEY로 지정된 컬럼으로 자동 매칭
+- 참조할테이블(부모테이블) -|-----<- 현재테이블(자식테이블)
 - 컬럼레벨방식
   ```
-  컬럼명 자료형 [ CONSTRAINT 제약조건명 ] REFERENCES 참조할테이블명[ (참조할컬럼명) ]
+  컬럼명 자료형 [ CONSTRAINT 제약조건명 ] REFERENCES 참조할테이블명[ (참조할컬럼명) ] [ 삭제옵션 ]
   ```
 - 테이블레벨방식
   ```
-  [ CONSTRAINT 제약조건명 ] FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명[ (참조할컬럼명) ]
+  [ CONSTRAINT 제약조건명 ] FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명[ (참조할컬럼명) ] [ 삭제옵션 ]
   ```
 - 삭제옵션 
   - 자식테이블 생성 시 외래키 제약조건 부여할 때 지정
@@ -658,3 +657,25 @@ INSERT INTO MEMBER(MEM_NO, MEM_NAME) VALUES(4, '강개순');
 
 ![Untitled](https://user-images.githubusercontent.com/115604544/203284499-2ece21cf-2c61-4ae7-ab13-e1c7236746cf.png)
 
+### 6_5. SUBQUERY를 이용한 테이블 생성
+```
+CREATE TABLE 테이블명
+AS 서브쿼리;
+```
+- 테이블 복사 개념
+- 컬럼명, 데이터 타입, 데이터 값, 제약조건의 경우 NOT NULL만 복사됨 (주석, NOT NULL외 제약조건 복사 X)
+- 구조만 복사하고자 할 때
+  ```SQL
+  CREATE TABLE EMPLOYEE_COPY2
+  AS SELECT EMP_ID, EMP_NAME, SALARY, BONUS
+       FROM EMPLOYEE
+      WHERE 1 = 0;
+  ```
+  => WHERE절에 무조건 거짓인 조건을 제시하여 데이터값은 복제되지 않게 함
+- 서브쿼리의 SELECT절에 산술식 또는 함수식 기술된 경우 반드시 별칭 지정
+  ```SQL
+  CREATE TABLE EMPLOYEE_COPY3
+  AS SELECT EMP_ID, EMP_NAME, SALARY, SALARY * 12 "연봉"
+       FROM EMPLOYEE;
+  ```
+## 7.
