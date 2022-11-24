@@ -75,10 +75,31 @@ WHERE TEAM_NAME IN (SELECT TEAM_NAME
                     GROUP BY TEAM_NAME);
 
 --12. 선수의 이름과 포지션, 등번호, 팀ID, 팀명을 조회하는 뷰(V_TEAM_PLAYER)를 하나 생성한 뒤 생성한 뷰를 활용하여 '황'씨성을 가진 선수들의 정보를 조회하시오.   (VIEW 수업 후에 풀 것)
+GRANT CREATE VIEW TO SOCCER;
+
+CREATE OR REPLACE VIEW V_TEAM_PLAYER
+AS SELECT PLAYER_NAME, POSITION, BACK_NO, TEAM_ID, TEAM_NAME
+     FROM PLAYER
+     JOIN TEAM USING(TEAM_ID);
+
+SELECT *
+FROM V_TEAM_PLAYER
+WHERE PLAYER_NAME LIKE '황%';
 
 --13. 울산 현대 팀에 '박주호' 선수가 새로 영입되었다. 
 --해당 선수의 정보 중 포지션은 DF이며 1987년 3월 16일생, 신장과 몸무게가 각각 176cm, 75kg으로 나간다고 했을 때, 
 --박주호 선수의 선수ID를 기존 선수들 중 가장 큰 숫자를 지닌 선수에서 숫자를 하나 증가시켜 추가할 수 있는 쿼리를 작성하시오. (난이도 있음!) (INSERT 수업 후에 풀 것)
+INSERT INTO PLAYER(PLAYER_ID, PLAYER_NAME, TEAM_ID, POSITION, BIRTH_DATE, HEIGHT, WEIGHT)
+VALUES((SELECT MAX(PLAYER_ID) + 1
+          FROM PLAYER)
+      , '박주호'
+      , (SELECT TEAM_ID
+           FROM TEAM
+          WHERE TEAM_NAME = '울산현대')
+      , 'DF'
+      , '87/03/16'
+      , 176
+      , 75);
 
 --14. SCHEDULE에 기록된 정보들 중 HOME팀과 AWAY팀의 합산 점수가 가장 높은 경기의 날짜와 경기장 명, HOME팀 명과 AWAY팀 명, 그리고 각 팀이 기록한 골의 점수를 조회하시오. 
 SELECT SCHE_DATE "경기날짜", T1.TEAM_NAME "HOME팀 명", S.HOME_SCORE "HOME팀 점수", T2.TEAM_NAME "AWAY팀 명", S.AWAY_SCORE "AWAY팀 점수"
