@@ -848,4 +848,116 @@ TRUNCATE TABLE 테이블명;
   - RESOURCE : 특정 객체를 생성할 수 있는 권한 (CREATE TABEL, CREATE SEQUENCE, ...)
 ## 9. TCL (TRANSACTION CONTROL LANGUAGE) : 트랜잭션 제어 언어
 - 트랜잭션 (TRANSACTION)
- 
+  - 데이터베이스의 논리적 연산단위
+  - 데이터의 변경사항 (DML)들을 하나로 묶어서 처리할 때 필요한 개념
+  - DML문을 한번 수행할 때 트렌잭션이 존재하면 해당 트랜잭션에 같이 묶어서 처리   
+    트랜잭션이 존재하지 않으면 새로운 트랜잭션을 만들어서 묶음
+- COMMIT : 트랜잭션에 담겨있는 변경 사항들을 실제 DB에 반영시킴 (후에 트랜잭션은 사라짐)
+- ROLLBACK : 트랜잭션에 담겨있는 변경 사항들을 삭제(취소)한 후 마지막 COMMIT 시점으로 돌아감
+- SAVEPOINT 포인트명 : 현재 시점에 해당 포인트명으로 임시저장점을 정의해둠. ROLLBACK시 전체 취소가 아닌 일부만 취소 가능
+- DDL문 (CREATE, ALTER, DROP)을 수행하는 순간 무조건 COMMIT되므로 DDL문 수행 전 변경 사항들이 있다면 정확히 픽스 (COMMIT, ROLLBACK)하고 진행
+## 10. OBJECT (VIEW)
+### 10_1. VIEW 뷰
+- SELECT문 (쿼리문)을 저장해둘 수 있는 객체
+- 자주 쓰는 긴 SELECT문을 저장해두면 매번 긴 SELECT문을 다시 기술할 필요 없음
+- 임시테이블 같은 존재 (실제 데이터가 담겨있는 건 아님 => 논리적인 가상 테이블)
+- [참고] USER_VIEWS : 현재 사용자가 가지고 있는 뷰 객체에 대한 정보 조회할 수 있는 시스템 테이블
+### 10_2. VIEW 생성 / 삭제
+- VIEW 생성
+  ```
+  CREATE [ OR REPLACE ] VIEW 뷰명
+  AS 저장시키고자하는쿼리문 (== 서브쿼리);
+  ```
+  - OR REPLACE : 뷰 생성 시 중복된 이름의 뷰가 없으면 새로 뷰 생성 / 중복된 이름의 뷰가 있으면 해당 뷰를 변경(갱신)하는 옵션
+  - VIEW 생성 전 관리자 계정에서 CREATE VIEW 권한 부여
+    ```SQL
+    GRANT CREATE VIEW TO BR;
+    ```
+- VIEW 삭제
+  ```
+  DROP VIEW 뷰명;
+  ```
+### 10_3. VIEW 컬럼에 별칭 부여
+- 서브쿼리의 SELECT절에 산술연산식, 함수식을 기술했을 경우 반드시 별칭 지정
+- 서브쿼리의 SELECT절 각 필드에 별칭 부여
+- 뷰명 뒤에 모든 필드에 대한 별칭 부여
+  ```
+  CREATE OR REPLACE VIEW 뷰명(별칭1, 별칭2, ..) => 서브쿼리에 제시한 순서대로 전부 기술
+  AS SELECT 서브쿼리
+  ```
+### 10_4. DML명령어로 VIEW 조작
+- 생성된 뷰 이용해서 DML (INSERT, UPDATE, DELETE) 가능 
+- 뷰 통해서 조작시 실제 데이터가 담겨있는 베이스테이블에 반영됨
+- DML로 조작이 불가능한 경우 (가능할 수도 불가능할 수도 있음)
+  - 뷰에 정의되어있지 않은 컬럼을 조작하려고 하는 경우
+  - 뷰에 정의되어있지 않은 컬럼 중 베이스테이블상에 NOT NULL 제약조건이 걸려 있는 경우
+  - 산술연산식 또는 함수식으로 정의되어있는 경우
+  - 그룹함수나 GROUP BY 절이 포함되어있는 경우
+  - DISTINCT 구문이 포함되어있는 경우
+  - JOIN을 이용해서 여러 테이블을 연결시켜놓은 경우
+### 10_5. VIEW 옵션
+```
+CREATE [ OR REPLACE ] [ FORCE | NOFORCE ] VIEW 뷰명
+AS 서브쿼리
+[ WITH CHECK OPTION ]
+[ WITH READ ONLY ]
+```
+- FORCE / NOFORCE
+  - FORCE : 서브쿼리에 기술된 테이블이 존재하지 않아도 뷰 생성 가능
+    - 생성은 되지만 해당 테이블을 생성해야만 그때부터 뷰 활용 가능
+  - NOFORCE : 서브쿼리에 기술된 테이블이 존재해야만 뷰 생성 가능 (생략시 기본값)
+- WITH CHECK OPTION : DML시 서브쿼리에 기술된 조건에 부합하는 값으로만 DML이 가능하도록 함
+  - 서브쿼리에 기술된 조건이 맞지 않으면 오류 발생
+- WITH READ ONLY : 뷰에 대해 조회만 가능 (DML문 시행 불가)
+## 11. OBJECT (SEQUENCE)
+### 11_1. SEQUENCE 시퀀스
+- 자동으로 숫자 발생시켜주는 역할을 하는 객체
+- 정수값을 순차적으로 일정값씩 증가시키면서 생성해줌
+- EX) 회원번호, 사원번호, 게시글번호, ...
+- [참고] USER_SEQUENCES : 이 사용자가 가지고 있는 시퀀스들의 구조를 보고자할 때의 시스템 테이블
+### 11_2. SEQUENCE 객체 생성 / 삭제
+- SEQUENCE 생성
+  ```
+  CREATE SEQUENCE 시퀀스명
+  [ START WITH 시작숫자 ]ㅤㅤㅤㅤㅤㅤㅤ처음 발생시킬 시작값 지정 (기본값 1)
+  [ INCREMENT BY 숫자 ]ㅤㅤㅤㅤㅤㅤㅤㅤ몇 씩 증가시킬건지 (기본값 1)
+  [ MAXVALUE 숫자 ]ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ최대값 지정 (기본값 겁나 큼)
+  [ MINVALUE 숫자 ]ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ최소값 지정 (기본값 1)
+  [ CYCLE | NOCYCLE ]ㅤㅤㅤㅤㅤㅤㅤㅤㅤ값 순환 여부 지정 (기본값 NOCYCLE)
+  [ NOCACHE | CACHE 바이트크기 ]ㅤㅤㅤ캐시메모리 할당 (기본값 CACHE 20)
+  ```
+  - 캐시메모리 : 미리 발생될 값들을 생성해서 저장해두는 공간
+    - 매번 호출할때마다 새로이 숫자를 생성하는게 아니라 캐시메모리 공간에 미리 생성된 값들을 가져오기 때문에 속도가 빨라짐
+    - 접속이 해제되면 캐시메모리에 미리 만들어둔 번호가 날라감
+- SEQUENCE 삭제
+  ```
+  DROP SEQUENCE 시퀀스명;
+  ```
+### 11_3. SEQUENCE 사용 (숫자 발생)
+- 시퀀스명.CURRVAL : 현재 시퀀스의 값 (마지막으로 성공적으로 수행된 NEXTVAL)
+- 시퀀스명.NEXTVAL : 일정값을 증가시켜서 새로이 발생된 값
+ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ현재 시퀀스 값에 INCREMENT BY값 만큼 증가된 값
+- NEXTVAL를 수행하지 않으면 CURRVAL을 사용할 수 없음
+- 지정한 MAXVALUE값 초과하면 .NEXTVAL 수행  오류 발생
+### 11_4. SEQUENCE 변경
+```
+ALTER SEQUENCE 시퀀스명
+[ INCREMENT BY 증가값 ]
+[ MAXVALUE 최대값 ]
+[ MINVALUE 최소값 ]
+[ CYCLE | NOCYCLE ]
+[ NOCACHE | CACHE 바이트크기 ]
+```
+=> START WITH 변경불가능
+### 11_5. INSERT문에서 시퀀스 활용
+```SQL
+CREATE SEQUENCE SEQ_EID
+START WITH 300
+NOCACHE;
+
+INSERT 
+  INTO EMPLOYEE
+       (EMP_ID, EMP_NAME, EMP_NO, JOB_CODE, HIRE_DATE)
+VALUES
+       (SEQ_EID.NEXTVAL, ?, ?, ?, SYSDATE);
+```
