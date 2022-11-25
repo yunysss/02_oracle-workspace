@@ -68,11 +68,9 @@ ORDER BY 1;
 --11. 선수 중 '정현수'라는 동명이인이 속한 팀의 한글 명칭과 영문 명칭, 소속 지역을 조회하시오.
 SELECT TEAM_NAME "한글 명칭", E_TEAM_NAME "영문 명칭", REGION_NAME "소속 지역"
 FROM TEAM
-WHERE TEAM_NAME IN (SELECT TEAM_NAME
-                      FROM PLAYER P, TEAM T
-                     WHERE P.TEAM_ID = T.TEAM_ID
-                       AND PLAYER_NAME = '정현수'
-                    GROUP BY TEAM_NAME);
+WHERE TEAM_ID IN (SELECT TEAM_ID
+                      FROM PLAYER
+                     WHERE PLAYER_NAME = '정현수');
 
 --12. 선수의 이름과 포지션, 등번호, 팀ID, 팀명을 조회하는 뷰(V_TEAM_PLAYER)를 하나 생성한 뒤 생성한 뷰를 활용하여 '황'씨성을 가진 선수들의 정보를 조회하시오.   (VIEW 수업 후에 풀 것)
 GRANT CREATE VIEW TO SOCCER;
@@ -102,15 +100,17 @@ VALUES((SELECT MAX(PLAYER_ID) + 1
       , 75);
 
 --14. SCHEDULE에 기록된 정보들 중 HOME팀과 AWAY팀의 합산 점수가 가장 높은 경기의 날짜와 경기장 명, HOME팀 명과 AWAY팀 명, 그리고 각 팀이 기록한 골의 점수를 조회하시오. 
-SELECT SCHE_DATE "경기날짜", T1.TEAM_NAME "HOME팀 명", S.HOME_SCORE "HOME팀 점수", T2.TEAM_NAME "AWAY팀 명", S.AWAY_SCORE "AWAY팀 점수"
-FROM SCHEDULE S, TEAM T1, TEAM T2
-WHERE S.HOMETEAM_ID = T1.TEAM_ID
+SELECT SCHE_DATE "경기날짜", STADIUM_NAME "경기장명", T1.TEAM_NAME "HOME팀 명", HOME_SCORE "HOME팀 점수", T2.TEAM_NAME "AWAY팀 명", AWAY_SCORE "AWAY팀 점수"
+FROM SCHEDULE S1, STADIUM S2, TEAM T1, TEAM T2
+WHERE S1.STADIUM_ID = S2.STADIUM_ID
+  AND S.HOMETEAM_ID = T1.TEAM_ID
   AND S.AWAYTEAM_ID = T2.TEAM_ID
   AND HOME_SCORE + AWAY_SCORE = (SELECT MAX(HOME_SCORE + AWAY_SCORE)
                                    FROM SCHEDULE);
 
 SELECT SCHE_DATE "경기날짜", T1.TEAM_NAME "HOME팀 명", S.HOME_SCORE "HOME팀 점수", T2.TEAM_NAME "AWAY팀 명", S.AWAY_SCORE "AWAY팀 점수"
 FROM SCHEDULE S
+JOIN STADIUM USING(STADIUM_ID)
 JOIN TEAM T1 ON (S.HOMETEAM_ID = T1.TEAM_ID)
 JOIN TEAM T2 ON (S.AWAYTEAM_ID = T2.TEAM_ID)
 WHERE HOME_SCORE + AWAY_SCORE = (SELECT MAX(HOME_SCORE + AWAY_SCORE)
