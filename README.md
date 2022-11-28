@@ -961,3 +961,95 @@ INSERT
 VALUES
        (SEQ_EID.NEXTVAL, ?, ?, ?, SYSDATE);
 ```
+## 12. PL/SQL
+### 12_1. PL/SQL (PROCEDURE LANGUAGE EXTENSION TO SQL)
+- 오라클에 내장되어있는 절차적 언어
+- SQL문 내에서 변수 활용, 조건처리 (IF), 반복처리 (LOOP, FOR, WHILE) 등 지원하여 SQL의 단점 보완
+- 다수의 SQL문을 한번에 실행 가능 (BLOCK 구조)
+- 구조
+  - [ 선언부 (DECLARE SECTION) ] : DECLARE로 시작, 변수나 상수 선언 및 초기화
+  - 실행부 (EXECUTABLE SECTION) : BEGIN로 시작, SQL문 또는 제어문 (조건문, 반복문) 등의 로직 기술
+  - [ 예외처리부 (EXCEPTION SECTION) ] : EXCEPTION로 시작, 예외 발생시 해결하기 위한 구문 미리 기술
+- 출력을 위해 SET SERVEROUTPUT ON; 한 번 실행해두기
+### 12_2. DECLARE 선언부
+- 변수 및 상수 선언하는 공간 (선언과 동시에 초기화 가능)
+- 일반타입변수, 레퍼런스타입변수, ROW타입변수
+- 일반타입변수 선언 및 초기화
+  ```
+  변수명 [ CONSTANT ] 자료형 [ := 값 ];
+  ```
+- 레퍼런스타입변수 선언 및 초기화
+  ```
+  변수명 테이블명.컬럼명%TYPE;
+  ```
+  => 특정 컬럼의 데이터타입을 참조하여 그 타입으로 지정
+- ROW타입변수
+  - 테이블의 한 행에 대한 모든 컬럼값을 한꺼번에 담을 수 있는 변수
+  ```
+  변수명테이블명%ROWTYPE;
+  ```
+  => 테이블 내 컬럼 하나하나에 접근 (전체 한번에 출력 X)
+### 12_3. BEGIN 실행부
+- 조건문
+  - IF ~ THEN ~ END IF
+    ```
+    IF 조건식 THEN 실행내용 END IF;
+    ```
+    => 단일 IF문
+  - IF ~ THEN ~ ELSE ~ END IF
+    ```
+    IF 조건식 THEN 실행내용 ELSE 실행내용 END IF;
+    ```
+    => IF - ELSE문
+  - IF ~ THEN ~ ELSIF ~ ELSE ~ END IF
+    ```
+    IF 조건식1 THEN 실행내용1 ELSIF 조건식2 THEN 실행내용2 ... [ ELSE 실행내용N ] END IF;
+    ```
+  - CASE
+    ```
+    CASE 비교대상자 WHEN 비교값1 THEN 결과값1 WHEN 비교값2 THEN 결과값2 ... [ ELSE 결과값N ] END;
+    ```
+    => SWITCH문
+- 반복문
+  - BASIC LOOP문
+    ```
+    LOOP
+      반복적으로 실행할 구문;
+      반복문을 빠져나갈 수 있는 구문;
+    END LOOP;
+    ```
+    => 반복문을 빠져나갈 수 있는 구문
+      - IF 조건식 THEN EXIT; END IF;
+      - EXIT WHEN 조건식;
+  - FOR LOOP문
+    ```
+    FOR 변수 IN [ REVERSE ] 초기값..최종값
+    LOOP
+      반복적으로 실행할 구문;
+    END LOOP;
+    ```
+    - 변수 DECLARE할 필요 없음
+    - REVERSE : 1씩 줄어듦
+  - WHILE LOOP문
+    ```
+    WHILE 반복문이 수행될 조건
+    LOOP
+      반복적으로 실행할 구문;
+    END LOOP;
+    ```
+### 12_4. 예외처리부 EXCEPTION
+- 예외 (EXCEPTION) : 실행 중 발생되는 오류
+- 실행부 다음에 작성
+```
+EXCEPTION
+  WHEN 예외명1 THEN 예외처리구문1;
+  WHEN 예외명2 THEN 예외처리구문2;
+  ...
+  WHEN OTHERS THEN 예외처리구문;
+```
+- 시스템예외 (오라클에서 미리 정의해둔 예외)
+  - NO_DATA_FOUND : SELECT한 결과가 한 행도 없을 경우
+  - TOO_MANY_ROWS : SELECT한 결과가 여러 행일 경우
+  - ZERO_DIVIDE : 0으로 나누기했을 경우
+  - DUP_VAL_ON_INDEX : UNIQUE 제약조건에 위배되었을 경우
+  
