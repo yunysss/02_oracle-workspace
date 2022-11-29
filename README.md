@@ -1052,4 +1052,32 @@ EXCEPTION
   - TOO_MANY_ROWS : SELECT한 결과가 여러 행일 경우
   - ZERO_DIVIDE : 0으로 나누기했을 경우
   - DUP_VAL_ON_INDEX : UNIQUE 제약조건에 위배되었을 경우
-  
+## 13. OBJECT (TRIGGER)
+### 13_1. TRIGGER 트리거
+- 내가 지정한 테이블에  INSERT, UPDATE, DELETE 등의 DML문에 의해 변경사항이 생길 때 (즉, 테이블에 이벤트 발생했을 때) 매번 "자동으로 실행시킬 내용"을 미리 정의해둘 수 있는 객체
+- 회원 탈퇴시 기존의 회원 테이블에 데이터 DELETE 후 곧바로 탈퇴된 회원들만 따로 보관하는 테이블에 자동으로 INSERT처리
+- 회원의 신고횟수가 일정 수를 넘었을 때 묵시적으로 해당 회원을 블랙리스트로 처리
+- 입출고에 대한 데이터가 기록(INSERT)될 때마다 해당 상품에 대한 재고 수량을 매번 수정(UPDATE)
+### 13_2. TRIGGER 종류
+- SQL문의 실행시기에 따른 분류
+  - BEFORE TRIGGER : 지정한 테이블에 이벤트가 발생되기 전에 트리거 실행
+  - AFTER TRIGGER : 지정한 테이블에 이벤트가 발생된 후에 트리거 실행
+- SQL문에 의해 영향을 받는 각 행에 따른 분류
+  - STATEMENT TRIGGER (문장트리거) : 이벤트가 발생한 SQL문에 대해 딱 한번만 트리거 실행
+  - ROW TRIGGER (행트리거) : 해당 SQL문이 실행될 때마다 매번 트리거 실행 (FOR EACH ROW 옵션 기술)
+    - :OLD - BEFORE UPDATE (수정전 데이터), BEFORE DELETE (삭제전 데이터)
+    - :NEW - AFTER INSERT (추가된 데이터), AFTER UPDATE (수정후 데이터)
+### 13_3. TRIGGER 생성 구문
+```
+CREATE [ OR REPLACE ] TRIGGER 트리거명
+BEFORE|AFTER INSERT|UPDATE|DELETE ON 테이블명
+[ FOR EACH ROW ]
+[ DECLARE
+    변수선언; ]
+BEGIN
+    실행내용(위에 지정된 이벤트 발생시 묵시적으로(자동으로) 실행할 구문)
+[ EXCEPTION
+    예외처리구문; ]
+END;
+/
+```
